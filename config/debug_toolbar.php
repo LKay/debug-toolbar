@@ -13,11 +13,6 @@ $config['auto_render'] = Kohana::$environment > Kohana::PRODUCTION;
 $config['minimized'] = FALSE;
 
 /*
- * Log toolbar data to FirePHP
- */
-$config['firephp_enabled'] = TRUE;
-
-/*
  * Enable or disable specific panels
  */
 $config['panels'] = array(

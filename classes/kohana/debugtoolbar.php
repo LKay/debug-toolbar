@@ -90,12 +90,6 @@ abstract class Kohana_DebugToolbar {
 			$template->set('customs', self::get_customs());
 		}
 
-		// FirePHP
-		if ($config->firephp_enabled === TRUE)
-		{
-			self::firephp();
-		}
-
 		// Set alignment for toolbar
 		switch ($config->align)
 		{
@@ -292,94 +286,6 @@ abstract class Kohana_DebugToolbar {
 	public static function get_routes()
 	{
 		return Route::all();
-	}
-
-	/**
-	 * Add toolbar data to FirePHP console
-	 *
-	 */
-	private static function firephp()
-	{
-		$firephp = FirePHP::getInstance(TRUE);
-		$firephp->fb('KOHANA DEBUG TOOLBAR:');
-
-		// Globals
-		$globals = array(
-			'Post'    => empty($_POST)    ? array() : $_POST,
-			'Get'     => empty($_GET)     ? array() : $_GET,
-			'Cookie'  => empty($_COOKIE)  ? array() : $_COOKIE,
-			'Session' => empty($_SESSION) ? array() : $_SESSION
-		);
-
-		foreach ($globals as $name => $global)
-		{
-			$table = array();
-			$table[] = array($name,'Value');
-
-			foreach((array)$global as $key => $value)
-			{
-				if (is_object($value))
-				{
-					$value = get_class($value).' [object]';
-				}
-
-				$table[] = array($key, $value);
-			}
-
-			$message = "$name: ".count($global).' variables';
-
-			$firephp->fb(array($message, $table), FirePHP::TABLE);
-		}
-
-		// Database
-		$query_stats = self::get_queries();
-
-		//$total_time = $total_rows = 0;
-		$table = array();
-		$table[] = array('DB profile', 'SQL Statement','Time','Memory');
-
-		foreach ((array)$query_stats['data'] as $db => $queries)
-		{unset($queries['total']);
-			foreach ($queries as $query)
-			{
-				$table[] = array(
-					$db,
-					str_replace("\n",' ',$query['name']),
-					number_format($query['time']*1000, 3),
-					number_format($query['memory']/1024, 3),
-				);
-			}
-		}
-
-		$message = 'Queries: '.$query_stats['count'].' SQL queries took '.
-			number_format($query_stats['time'], 3).' seconds and '.$query_stats['memory'].' b';
-
-		$firephp->fb(array($message, $table), FirePHP::TABLE);
-
-		// Benchmarks
-		$groups = self::get_benchmarks();
-		// application benchmarks
-		$total = array_pop($groups);
-
-		$table = array();
-		$table[] = array('Group', 'Benchmark', 'Count', 'Time', 'Memory');
-
-		foreach ((array)$groups as $group => $benchmarks)
-		{
-			foreach ((array)$benchmarks as $name => $benchmark)
-			{
-				$table[] = array(
-					ucfirst($group),
-					ucwords($benchmark['name']),
-					number_format($benchmark['total_time'], 3). ' s',
-					text::bytes($benchmark['total_memory']),
-				);
-			}
-		}
-
-		$message = 'Application tooks '.number_format($total['total_time'], 3).' seconds and '.text::bytes($total['total_memory']).' memory';
-
-		$firephp->fb(array($message, $table), FirePHP::TABLE);
 	}
 
 	/**
